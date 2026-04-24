@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" role="img" aria-label="Practice mode screenshot">
+  <rect width="900" height="560" fill="#f7f6f3"/>
+
+  <!-- Top bar -->
+  <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+    <text x="860" y="44" font-size="20" font-weight="700" fill="#24292f" text-anchor="end" direction="rtl">חוויה מוזיקלית — תרגול</text>
+    <text x="860" y="68" font-size="13" fill="#57606a" text-anchor="end" direction="rtl">שאלה 3 · משוב מיידי</text>
+    <text x="40" y="44" font-size="13" fill="#3b6cb5" font-weight="600">◀ חזרה לתפריט</text>
+  </g>
+
+  <!-- Card -->
+  <g>
+    <rect x="40" y="96" width="820" height="432" rx="14" fill="#ffffff" stroke="#d6d3cf"/>
+
+    <!-- Lesson tag + source tag -->
+    <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+      <rect x="716" y="120" width="124" height="24" rx="12" fill="#e6e8eb"/>
+      <text x="778" y="137" font-size="12" fill="#24292f" text-anchor="middle" direction="rtl">שיעור 1 · שאלון</text>
+    </g>
+
+    <!-- Question -->
+    <text x="840" y="186" font-size="22" font-weight="600" fill="#24292f" text-anchor="end" direction="rtl" font-family="system-ui, sans-serif">
+      מי מהמלחינים הבאים שייך לתקופה הקלאסית?
+    </text>
+
+    <!-- Options -->
+    <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+      <!-- Option 1: wrong (chosen) -->
+      <rect x="60" y="216" width="780" height="50" rx="10" fill="#fadbd8" stroke="#c77268" stroke-width="1.5"/>
+      <circle cx="800" cy="241" r="14" fill="#c77268"/>
+      <text x="800" y="246" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="700">א</text>
+      <text x="778" y="246" font-size="16" fill="#54201a" text-anchor="end" direction="rtl">ויוואלדי</text>
+
+      <!-- Option 2 -->
+      <rect x="60" y="274" width="780" height="50" rx="10" fill="#ffffff" stroke="#d6d3cf"/>
+      <circle cx="800" cy="299" r="14" fill="#e6e8eb"/>
+      <text x="800" y="304" font-size="14" fill="#24292f" text-anchor="middle" font-weight="700">ב</text>
+      <text x="778" y="304" font-size="16" fill="#57606a" text-anchor="end" direction="rtl">שופן</text>
+
+      <!-- Option 3: correct -->
+      <rect x="60" y="332" width="780" height="50" rx="10" fill="#d5efd7" stroke="#6fa872" stroke-width="1.5"/>
+      <circle cx="800" cy="357" r="14" fill="#6fa872"/>
+      <text x="800" y="362" font-size="14" fill="#ffffff" text-anchor="middle" font-weight="700">ג</text>
+      <text x="778" y="362" font-size="16" fill="#1e3d20" font-weight="600" text-anchor="end" direction="rtl">מוצרט ✓</text>
+
+      <!-- Option 4 -->
+      <rect x="60" y="390" width="780" height="50" rx="10" fill="#ffffff" stroke="#d6d3cf"/>
+      <circle cx="800" cy="415" r="14" fill="#e6e8eb"/>
+      <text x="800" y="420" font-size="14" fill="#24292f" text-anchor="middle" font-weight="700">ד</text>
+      <text x="778" y="420" font-size="16" fill="#57606a" text-anchor="end" direction="rtl">צ׳ייקובסקי</text>
+    </g>
+
+    <!-- Feedback + explanation -->
+    <g font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+      <text x="840" y="466" font-size="14" fill="#54201a" text-anchor="end" direction="rtl">לא נכון. התשובה הנכונה: מוצרט</text>
+      <rect x="60" y="478" width="780" height="36" rx="8" fill="#eef1f5"/>
+      <text x="830" y="501" font-size="13" fill="#57606a" text-anchor="end" direction="rtl">
+        מוצרט פעל בשלהי המאה ה-18, במרכז התקופה הקלאסית. ויוואלדי שייך לבארוק, שופן וצ׳ייקובסקי לרומנטיקה.
+      </text>
+    </g>
+  </g>
+</svg>

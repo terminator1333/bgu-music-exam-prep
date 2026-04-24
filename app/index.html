@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>חוויה מוזיקלית — מבחן תרגול</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --panel: #ffffff;
+    --ink: #24292f;
+    --muted: #57606a;
+    --line: #d6d3cf;
+    --accent: #3b6cb5;
+    --accent-ink: #ffffff;
+    --good: #d5efd7;
+    --good-ink: #1e3d20;
+    --good-border: #6fa872;
+    --bad: #fadbd8;
+    --bad-ink: #54201a;
+    --bad-border: #c77268;
+    --tag-bank: #e6e8eb;
+    --tag-slides: #fae7c2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: "Segoe UI", "Arial Hebrew", "Noto Sans Hebrew", "Assistant", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 8px 0 4px;
+    font-weight: 600;
+  }
+  .subtitle { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 560px) {
+    .mode-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    padding: 14px 16px;
+    text-align: right;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover:not(:disabled) { background: #f0efeb; }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  button.primary:hover:not(:disabled) { filter: brightness(0.95); }
+  button.ghost { background: transparent; }
+
+  .mode-grid button {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px;
+  }
+  .mode-grid .label { font-size: 18px; font-weight: 600; }
+  .mode-grid .hint { color: var(--muted); font-size: 13px; font-weight: 400; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat .n { font-size: 22px; font-weight: 600; }
+  .stat .k { font-size: 12px; color: var(--muted); }
+
+  .exam-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: var(--tag-bank);
+    color: var(--muted);
+    margin-inline-start: 6px;
+  }
+  .tag.slides { background: var(--tag-slides); color: #7a5a1b; }
+
+  .question {
+    font-size: 19px;
+    font-weight: 500;
+    margin: 6px 0 16px;
+    line-height: 1.5;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .option:hover:not(.disabled) { background: #f0efeb; }
+  .option.selected { border-color: var(--accent); background: #edf2fb; }
+  .option.correct { border-color: var(--good-border); background: var(--good); color: var(--good-ink); }
+  .option.wrong { border-color: var(--bad-border); background: var(--bad); color: var(--bad-ink); }
+  .option.disabled { cursor: default; }
+  .option .letter {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #eceae5;
+    color: var(--muted);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .option.selected .letter { background: var(--accent); color: #fff; }
+  .option.correct .letter { background: var(--good-border); color: #fff; }
+  .option.wrong .letter { background: var(--bad-border); color: #fff; }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    gap: 10px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .muted { color: var(--muted); }
+  .small { font-size: 14px; }
+
+  .result-big { font-size: 42px; font-weight: 700; margin: 10px 0 4px; }
+  .result-sub { color: var(--muted); margin-bottom: 20px; }
+
+  .review-item {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: var(--panel);
+  }
+  .review-item .q { font-weight: 500; margin-bottom: 6px; }
+  .review-item .a { font-size: 14px; }
+  .review-item .your { color: var(--bad-ink); }
+  .review-item .right { color: var(--good-ink); }
+
+  .explanation {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #eef1f5;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .link { color: var(--accent); cursor: pointer; text-decoration: underline; background: none; border: 0; padding: 0; font: inherit; }
+  .link:hover { filter: brightness(0.85); }
+
+  .banner {
+    background: #fff3d8;
+    border: 1px solid #e6c97a;
+    color: #6b4d11;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+
+  .hidden { display: none !important; }
+
+  .error {
+    background: var(--bad);
+    border: 1px solid var(--bad-border);
+    color: var(--bad-ink);
+    padding: 14px 16px;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>חוויה מוזיקלית — מבחן תרגול</h1>
+  <p class="subtitle">הכנה למבחן המסכם לקורס "שומעים שזה קלאסי".</p>
+
+  <!-- LANDING -->
+  <div id="view-home" class="view">
+    <div id="tbd-banner" class="banner hidden"></div>
+
+    <div class="card">
+      <div class="mode-grid">
+        <button data-mode="practice">
+          <span class="label">תרגול</span>
+          <span class="hint">משוב מיידי אחרי כל שאלה</span>
+        </button>
+        <button data-mode="exam">
+          <span class="label">מבחן</span>
+          <span class="hint">20 שאלות, ציון בסוף</span>
+        </button>
+        <button data-mode="weak">
+          <span class="label">נקודות חולשה</span>
+          <span class="hint">שאלות שטעית בהן בעבר</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="small muted" style="margin-bottom:8px;">סטטיסטיקות</div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stat-accuracy">–</div><div class="k">דיוק כללי</div></div>
+        <div class="stat"><div class="n" id="stat-answered">0</div><div class="k">שאלות שנענו</div></div>
+        <div class="stat"><div class="n" id="stat-exams">0</div><div class="k">מבחנים שהושלמו</div></div>
+      </div>
+      <div id="exam-history" class="small muted" style="margin-top:10px;"></div>
+      <div class="toolbar">
+        <button class="ghost small" id="reset-btn">איפוס התקדמות</button>
+      </div>
+    </div>
+
+    <div class="card small muted">
+      <div><strong>מקור השאלות:</strong> התווית <span class="tag">שאלון</span> מציינת שאלה מהבנק הרשמי של המרצה, <span class="tag slides">מצגת</span> מציינת שאלה שנגזרה מתוכן המצגות.</div>
+      <div style="margin-top:8px;" id="bank-counts"></div>
+    </div>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="view-question" class="view hidden">
+    <div class="exam-head">
+      <div id="q-progress">שאלה 1 מתוך 20</div>
+      <div>
+        <span id="q-lesson"></span>
+        <span id="q-source" class="tag"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="question" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div id="q-feedback" class="small" style="margin-top:14px;"></div>
+      <div class="footer-row">
+        <button class="ghost small" id="q-back">חזרה לתפריט</button>
+        <div>
+          <button class="ghost small hidden" id="q-prev">הקודמת</button>
+          <button class="primary hidden" id="q-next">הבאה</button>
+          <button class="primary hidden" id="q-submit">הגשת מבחן</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="view-results" class="view hidden">
+    <div class="card" style="text-align:center;">
+      <div class="muted small">הציון במבחן</div>
+      <div class="result-big" id="r-score">–</div>
+      <div class="result-sub" id="r-sub"></div>
+      <div class="toolbar" style="justify-content:center;">
+        <button class="primary" id="r-new">מבחן חדש</button>
+        <button class="ghost" id="r-home">חזרה לתפריט</button>
+      </div>
+    </div>
+    <div id="r-review"></div>
+  </div>
+
+  <div id="view-error" class="view hidden">
+    <div class="card error" id="error-text"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// --- Data + storage -------------------------------------------------------
+
+const STORAGE_KEY = "musicExam.v1";
+const LESSON_LABEL = {
+  1: "שיעור 1 — התזמורת",
+  2: "שיעור 2 — סוגות וצורות",
+  3: "שיעור 3 — כלי מיתר",
+  4: "שיעור 4 — כלי נשיפה והקשה",
+  5: "שיעור 5 — פסנתר",
+  6: "שיעור 6 — קול ואופרה",
+};
+const HEB_LETTERS = ["א", "ב", "ג", "ד"];
+const EXAM_SIZE = 20;
+const PASS_THRESHOLD = 0.75;
+
+let questions = [];
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    if (!s.perQuestion) s.perQuestion = {};
+    if (!Array.isArray(s.exams)) s.exams = [];
+    return s;
+  } catch {
+    return defaultState();
+  }
+}
+
+function defaultState() {
+  return { perQuestion: {}, exams: [] };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function recordAnswer(qid, correct) {
+  const p = state.perQuestion[qid] || { seen: 0, correct: 0, lastWrong: 0 };
+  p.seen += 1;
+  if (correct) p.correct += 1;
+  else p.lastWrong = Date.now();
+  state.perQuestion[qid] = p;
+  saveState();
+}
+
+// --- Utilities ------------------------------------------------------------
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickExamQuestions(mode) {
+  const ready = questions.filter(q => q.correct !== null);
+  if (mode === "exam") {
+    return shuffle(ready).slice(0, Math.min(EXAM_SIZE, ready.length));
+  }
+  if (mode === "practice") {
+    return shuffle(ready);
+  }
+  if (mode === "weak") {
+    // Weight: wrong-heavy first. Never-seen goes last.
+    const weighted = ready.map(q => {
+      const p = state.perQuestion[q.id];
+      if (!p) return { q, w: 0 };
+      const wrong = p.seen - p.correct;
+      return { q, w: Math.max(1, wrong * 3 - p.correct) };
+    });
+    // Sort by weight descending, random tiebreak. Take top 30 or all.
+    weighted.sort((a, b) => b.w - a.w || Math.random() - 0.5);
+    const picked = weighted.filter(w => w.w > 0).slice(0, 30).map(w => w.q);
+    // If there aren't enough wrong-answered ones, pad with random ready Qs.
+    if (picked.length < 10) {
+      const picked_ids = new Set(picked.map(q => q.id));
+      const others = shuffle(ready.filter(q => !picked_ids.has(q.id)));
+      return picked.concat(others.slice(0, 10 - picked.length));
+    }
+    return picked;
+  }
+  return [];
+}
+
+function prepareQuestion(q) {
+  // Shuffle option order and remember where the correct answer lands.
+  const indices = shuffle([0, 1, 2, 3]);
+  const shown = indices.map(i => q.options[i]);
+  const correctShown = indices.indexOf(q.correct);
+  return { q, shown, correctShown, indices };
+}
+
+// --- Views ----------------------------------------------------------------
+
+function showView(name) {
+  document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+  document.getElementById("view-" + name).classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+
+function renderHome() {
+  const ready = questions.filter(q => q.correct !== null).length;
+  const tbd = questions.length - ready;
+  const banner = document.getElementById("tbd-banner");
+  if (tbd > 0) {
+    banner.textContent = `שימו לב: ${tbd} שאלות ללא תשובה מסומנת (לא ייכללו במבחן).`;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
+
+  // Stats
+  const perQ = Object.values(state.perQuestion);
+  const answered = perQ.reduce((s, p) => s + p.seen, 0);
+  const totalCorrect = perQ.reduce((s, p) => s + p.correct, 0);
+  const acc = answered > 0 ? Math.round((totalCorrect / answered) * 100) + "%" : "–";
+  document.getElementById("stat-accuracy").textContent = acc;
+  document.getElementById("stat-answered").textContent = answered;
+  document.getElementById("stat-exams").textContent = state.exams.length;
+
+  const hist = state.exams.slice(-5).reverse();
+  const histEl = document.getElementById("exam-history");
+  if (hist.length === 0) {
+    histEl.textContent = "";
+  } else {
+    histEl.innerHTML = "חמישה מבחנים אחרונים: " +
+      hist.map(e => `<strong>${e.score}/${e.total}</strong>`).join(" · ");
+  }
+
+  // Bank breakdown
+  const byLesson = {};
+  for (const q of questions) {
+    if (!byLesson[q.lesson]) byLesson[q.lesson] = { bank: 0, slides: 0 };
+    byLesson[q.lesson][q.source] = (byLesson[q.lesson][q.source] || 0) + 1;
+  }
+  const parts = Object.keys(byLesson).sort().map(l => {
+    const b = byLesson[l];
+    return `שיעור ${l}: ${b.bank || 0}+${b.slides || 0}`;
+  });
+  document.getElementById("bank-counts").textContent =
+    "מבנה הבנק (שאלון+מצגת): " + parts.join(" · ");
+
+  // Enable/disable mode buttons based on availability
+  const weakBtn = document.querySelector('button[data-mode="weak"]');
+  const everWrong = perQ.some(p => p.seen > p.correct);
+  weakBtn.disabled = !everWrong && answered === 0;
+}
+
+// --- Session --------------------------------------------------------------
+
+let session = null;
+
+function startSession(mode) {
+  const list = pickExamQuestions(mode);
+  if (list.length === 0) {
+    alert("אין שאלות זמינות כרגע.");
+    return;
+  }
+  const prepared = list.map(prepareQuestion);
+  session = {
+    mode,
+    items: prepared,
+    idx: 0,
+    answers: new Array(prepared.length).fill(null),
+    // For practice: did we reveal feedback for this q yet?
+    revealed: new Array(prepared.length).fill(false),
+  };
+  renderQuestion();
+  showView("question");
+}
+
+function renderQuestion() {
+  const { items, idx, mode, answers, revealed } = session;
+  const item = items[idx];
+  const q = item.q;
+
+  document.getElementById("q-progress").textContent = `שאלה ${idx + 1} מתוך ${items.length}`;
+  document.getElementById("q-lesson").textContent = LESSON_LABEL[q.lesson] || "";
+  const src = document.getElementById("q-source");
+  src.textContent = q.source === "slides" ? "מצגת" : "שאלון";
+  src.className = "tag" + (q.source === "slides" ? " slides" : "");
+
+  document.getElementById("q-text").textContent = q.question;
+  const optsEl = document.getElementById("q-options");
+  optsEl.innerHTML = "";
+  item.shown.forEach((opt, i) => {
+    const el = document.createElement("div");
+    el.className = "option";
+    el.innerHTML = `<span class="letter">${HEB_LETTERS[i]}</span><span>${escapeHtml(opt)}</span>`;
+    el.onclick = () => pickOption(i);
+    optsEl.appendChild(el);
+  });
+
+  // Restore selection / feedback state if revisiting
+  const chosen = answers[idx];
+  if (chosen !== null) {
+    markOption(optsEl.children[chosen], "selected");
+  }
+  if (mode === "practice" && revealed[idx]) {
+    revealPractice(item, chosen);
+  }
+
+  // Feedback / buttons
+  document.getElementById("q-feedback").textContent = "";
+  if (mode === "practice" && revealed[idx]) {
+    renderPracticeFeedback(item, chosen);
+  }
+
+  const prev = document.getElementById("q-prev");
+  const next = document.getElementById("q-next");
+  const submit = document.getElementById("q-submit");
+  if (mode === "exam") {
+    prev.classList.toggle("hidden", idx === 0);
+    next.classList.toggle("hidden", idx === items.length - 1);
+    submit.classList.toggle("hidden", idx !== items.length - 1);
+  } else {
+    prev.classList.add("hidden");
+    next.classList.toggle("hidden", !revealed[idx]);
+    if (revealed[idx] && idx === items.length - 1) {
+      next.textContent = "סיום";
+    } else {
+      next.textContent = "הבאה";
+    }
+    submit.classList.add("hidden");
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+
+function markOption(el, cls) {
+  document.querySelectorAll("#q-options .option").forEach(x => {
+    x.classList.remove("selected", "correct", "wrong");
+  });
+  el.classList.add(cls);
+}
+
+function pickOption(shownIdx) {
+  const { items, idx, mode, answers, revealed } = session;
+  const item = items[idx];
+  if (mode === "practice" && revealed[idx]) return;
+
+  answers[idx] = shownIdx;
+
+  if (mode === "exam") {
+    // Just show selection; no feedback.
+    const optsEl = document.getElementById("q-options");
+    markOption(optsEl.children[shownIdx], "selected");
+    return;
+  }
+
+  // Practice & weak: reveal feedback
+  revealed[idx] = true;
+  const correct = shownIdx === item.correctShown;
+  recordAnswer(item.q.id, correct);
+  revealPractice(item, shownIdx);
+  renderPracticeFeedback(item, shownIdx);
+  document.getElementById("q-next").classList.remove("hidden");
+}
+
+function revealPractice(item, chosen) {
+  const optsEl = document.getElementById("q-options");
+  [...optsEl.children].forEach((el, i) => {
+    el.classList.remove("selected");
+    el.classList.add("disabled");
+    if (i === item.correctShown) el.classList.add("correct");
+    else if (i === chosen) el.classList.add("wrong");
+  });
+}
+
+function renderPracticeFeedback(item, chosen) {
+  const fb = document.getElementById("q-feedback");
+  const correct = chosen === item.correctShown;
+  let html;
+  if (correct) {
+    html = `<span style="color:var(--good-ink);">נכון ✓</span>`;
+  } else {
+    const correctText = item.shown[item.correctShown];
+    html = `<span style="color:var(--bad-ink);">לא נכון.</span> התשובה הנכונה: <strong>${escapeHtml(correctText)}</strong>`;
+  }
+  if (item.q.explanation) {
+    html += `<div class="explanation">${escapeHtml(item.q.explanation)}</div>`;
+  }
+  fb.innerHTML = html;
+}
+
+function goNext() {
+  const { items, idx, mode, answers } = session;
+  if (mode === "exam" && idx < items.length - 1) {
+    session.idx += 1;
+    renderQuestion();
+    return;
+  }
+  if (mode !== "exam") {
+    if (idx === items.length - 1) {
+      // Practice/weak finished: back to home
+      showView("home");
+      renderHome();
+      session = null;
+      return;
+    }
+    session.idx += 1;
+    renderQuestion();
+  }
+}
+
+function goPrev() {
+  if (session.mode !== "exam") return;
+  if (session.idx === 0) return;
+  session.idx -= 1;
+  renderQuestion();
+}
+
+function submitExam() {
+  const { items, answers } = session;
+  let score = 0;
+  const review = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const chosen = answers[i];
+    const correct = chosen === item.correctShown;
+    if (correct) score += 1;
+    recordAnswer(item.q.id, correct);
+    if (!correct) {
+      review.push({
+        q: item.q.question,
+        your: chosen === null ? null : item.shown[chosen],
+        right: item.shown[item.correctShown],
+        source: item.q.source,
+        lesson: item.q.lesson,
+        explanation: item.q.explanation || "",
+      });
+    }
+  }
+  state.exams.push({
+    date: new Date().toISOString(),
+    score,
+    total: items.length,
+  });
+  saveState();
+  renderResults(score, items.length, review);
+  showView("results");
+  session = null;
+}
+
+function renderResults(score, total, review) {
+  const pct = Math.round((score / total) * 100);
+  document.getElementById("r-score").textContent = `${score} / ${total}`;
+  const sub = document.getElementById("r-sub");
+  if (score / total >= PASS_THRESHOLD) {
+    sub.innerHTML = `${pct}% · <strong style="color:var(--good-ink);">עברת את סף ה-${Math.round(PASS_THRESHOLD*100)}%</strong>`;
+  } else {
+    sub.innerHTML = `${pct}% · <strong style="color:var(--bad-ink);">מתחת לסף ה-${Math.round(PASS_THRESHOLD*100)}%</strong>`;
+  }
+  const rv = document.getElementById("r-review");
+  if (review.length === 0) {
+    rv.innerHTML = `<div class="card small muted">ללא טעויות. כל הכבוד!</div>`;
+    return;
+  }
+  const parts = [`<div class="card small muted" style="margin-bottom:8px;">שאלות שטעית בהן:</div>`];
+  for (const r of review) {
+    const label = LESSON_LABEL[r.lesson] || "";
+    const tagCls = r.source === "slides" ? "tag slides" : "tag";
+    const tagTxt = r.source === "slides" ? "מצגת" : "שאלון";
+    parts.push(`
+      <div class="review-item">
+        <div class="small muted">${label} <span class="${tagCls}">${tagTxt}</span></div>
+        <div class="q">${escapeHtml(r.q)}</div>
+        <div class="a your">התשובה שלך: ${r.your === null ? "לא נענה" : escapeHtml(r.your)}</div>
+        <div class="a right">התשובה הנכונה: ${escapeHtml(r.right)}</div>
+        ${r.explanation ? `<div class="explanation">${escapeHtml(r.explanation)}</div>` : ""}
+      </div>
+    `);
+  }
+  rv.innerHTML = parts.join("");
+}
+
+// --- Wiring ---------------------------------------------------------------
+
+document.querySelectorAll("[data-mode]").forEach(b => {
+  b.addEventListener("click", () => startSession(b.dataset.mode));
+});
+document.getElementById("q-back").onclick = () => {
+  if (!session || confirm("לצאת בלי לשמור את התשובות של הסבב הזה?")) {
+    session = null;
+    showView("home");
+    renderHome();
+  }
+};
+document.getElementById("q-prev").onclick = goPrev;
+document.getElementById("q-next").onclick = goNext;
+document.getElementById("q-submit").onclick = submitExam;
+document.getElementById("r-new").onclick = () => startSession("exam");
+document.getElementById("r-home").onclick = () => {
+  showView("home");
+  renderHome();
+};
+document.getElementById("reset-btn").onclick = () => {
+  if (confirm("לאפס את כל ההתקדמות? פעולה בלתי הפיכה.")) {
+    state = defaultState();
+    saveState();
+    renderHome();
+  }
+};
+
+// --- Boot -----------------------------------------------------------------
+
+(async function boot() {
+  try {
+    const resp = await fetch("questions.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    questions = await resp.json();
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error("קובץ השאלות ריק.");
+    }
+    renderHome();
+    showView("home");
+  } catch (e) {
+    document.getElementById("error-text").textContent =
+      "שגיאה בטעינת השאלות: " + e.message +
+      " — ודא שהאפליקציה רצה דרך שרת HTTP (python3 -m http.server 8000 --directory app).";
+    showView("error");
+  }
+})();
+</script>
+</body>
+</html>

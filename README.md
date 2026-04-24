@@ -1,6 +1,5 @@
 # BGU Music Exam Prep — Ben Gurion University Classical Music Course Practice
 
-![BGU Music Exam Prep banner](docs/img/banner.svg)
 
 Open-source study aid for the Ben Gurion University (BGU) orchestral-music course **חוויה מוזיקלית — שומעים שזה קלאסי**. Hebrew multiple-choice questions drawn from the instructor's quizzes and the lecture slides, paired with a web app (practice, exam, weak-spot drill) and a full per-lecture question index you can read straight on GitHub.
 
@@ -25,12 +24,6 @@ Open-source study aid for the Ben Gurion University (BGU) orchestral-music cours
 - Per-lecture Q&A pages you can read straight on GitHub
 - Zero build step, zero dependencies — stdlib Python extractor and vanilla JS/HTML
 - Runs fully offline; progress persists locally in your browser
-
-## Screenshots
-
-| Practice | Exam | Weak-spot |
-| --- | --- | --- |
-| ![Practice mode](docs/img/screenshot-practice.svg) | ![Exam mode](docs/img/screenshot-exam.svg) | ![Weak-spot drill](docs/img/screenshot-weak.svg) |
 
 ## Quickstart
 

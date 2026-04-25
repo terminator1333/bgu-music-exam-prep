@@ -278,6 +278,29 @@
     font-weight: 600;
   }
 
+  .hard-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .hard-toggle input { margin-top: 3px; }
+  .hard-toggle strong { color: var(--ink); }
+
+  .hard-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: #fbe7d4;
+    color: #8a3a0e;
+    border: 1px solid #e0a978;
+    margin-inline-start: 6px;
+  }
+
   .error {
     background: var(--bad);
     border: 1px solid var(--bad-border);
@@ -314,6 +337,12 @@
       <div class="filter-row" id="lesson-filter">
         <span class="filter-label">סינון לפי שיעור (תרגול ונקודות חולשה):</span>
       </div>
+      <div class="filter-row">
+        <label class="hard-toggle">
+          <input type="checkbox" id="hard-mode-toggle">
+          <span><strong>מצב קשה</strong> · מחליף חלק מההסחות בגרסאות מטעות יותר (מתאים לסימולציית מבחן אמיתי)</span>
+        </label>
+      </div>
     </div>
 
     <div class="card">
@@ -342,6 +371,7 @@
       <div>
         <span id="q-lesson"></span>
         <span id="q-source" class="tag"></span>
+        <span id="q-hard-badge" class="hard-badge hidden">מצב קשה</span>
       </div>
     </div>
     <div class="card">
@@ -409,6 +439,7 @@ function loadState() {
     const s = JSON.parse(raw);
     if (!s.perQuestion) s.perQuestion = {};
     if (!Array.isArray(s.exams)) s.exams = [];
+    if (typeof s.hardMode !== "boolean") s.hardMode = false;
     return s;
   } catch {
     return defaultState();
@@ -416,7 +447,7 @@ function loadState() {
 }
 
 function defaultState() {
-  return { perQuestion: {}, exams: [] };
+  return { perQuestion: {}, exams: [], hardMode: false };
 }
 
 function saveState() {
@@ -496,7 +527,42 @@ function remapHebrewLetterRefs(text, letterMap) {
   return text;
 }
 
-function prepareQuestion(q) {
+// Indices referenced by Hebrew letter cross-references in the given text
+// (e.g. "תשובות א׳ ו-ב׳ נכונות" → {0,1}). Used to avoid replacing options
+// that a meta-answer points at.
+function getReferencedIndices(text) {
+  const refs = new Set();
+  if (!text) return refs;
+  const letterToIdx = { "א": 0, "ב": 1, "ג": 2, "ד": 3 };
+  let m;
+  const re1 = /([אבגד])(['׳])(?![א-ת])/g;
+  while ((m = re1.exec(text))) refs.add(letterToIdx[m[1]]);
+  const re2 = /(תשוב(?:ה|ות)\s+|ו\s*-\s*|וגם\s+)([אבגד])(?![א-ת'׳])/g;
+  while ((m = re2.exec(text))) refs.add(letterToIdx[m[2]]);
+  return refs;
+}
+
+function prepareQuestion(q, hardMode) {
+  // Start from a mutable copy of options; hard mode may swap some wrong ones.
+  const options = q.options.slice();
+  let hardApplied = false;
+  if (hardMode && Array.isArray(q.hard_distractors) && q.hard_distractors.length > 0) {
+    const referenced = getReferencedIndices(options[q.correct]);
+    const wrongIdx = [];
+    for (let i = 0; i < options.length; i++) {
+      if (i === q.correct) continue;
+      if (referenced.has(i)) continue; // don't break meta-answer pointers
+      wrongIdx.push(i);
+    }
+    const targets = shuffle(wrongIdx);
+    const distractors = shuffle(q.hard_distractors.slice());
+    const n = Math.min(targets.length, distractors.length);
+    for (let k = 0; k < n; k++) {
+      options[targets[k]] = distractors[k];
+    }
+    hardApplied = n > 0;
+  }
+
   // Shuffle option order and remember where the correct answer lands.
   const indices = shuffle([0, 1, 2, 3]);
   // letterMap[originalLetter] = newLetter — used to rewrite cross-references.
@@ -504,10 +570,10 @@ function prepareQuestion(q) {
   for (let orig = 0; orig < 4; orig++) {
     letterMap[HEB_LETTERS[orig]] = HEB_LETTERS[indices.indexOf(orig)];
   }
-  const shown = indices.map(i => remapHebrewLetterRefs(q.options[i], letterMap));
+  const shown = indices.map(i => remapHebrewLetterRefs(options[i], letterMap));
   const correctShown = indices.indexOf(q.correct);
   const explanationShown = remapHebrewLetterRefs(q.explanation || "", letterMap);
-  return { q, shown, correctShown, indices, letterMap, explanationShown };
+  return { q, shown, correctShown, indices, letterMap, explanationShown, hardApplied };
 }
 
 // --- Views ----------------------------------------------------------------
@@ -565,6 +631,9 @@ function renderHome() {
   const everWrong = perQ.some(p => p.seen > p.correct);
   weakBtn.disabled = !everWrong && answered === 0;
 
+  // Sync hard-mode checkbox to persisted state.
+  document.getElementById("hard-mode-toggle").checked = !!state.hardMode;
+
   renderLessonFilter();
 }
 
@@ -608,9 +677,11 @@ function startSession(mode) {
     alert("אין שאלות זמינות כרגע.");
     return;
   }
-  const prepared = list.map(prepareQuestion);
+  const hardMode = !!state.hardMode;
+  const prepared = list.map(q => prepareQuestion(q, hardMode));
   session = {
     mode,
+    hardMode,
     items: prepared,
     idx: 0,
     answers: new Array(prepared.length).fill(null),
@@ -643,6 +714,7 @@ function renderQuestion() {
   const src = document.getElementById("q-source");
   src.textContent = q.source === "slides" ? "מצגת" : "שאלון";
   src.className = "tag" + (q.source === "slides" ? " slides" : "");
+  document.getElementById("q-hard-badge").classList.toggle("hidden", !session.hardMode);
 
   document.getElementById("q-text").textContent = q.question;
   const optsEl = document.getElementById("q-options");
@@ -749,8 +821,9 @@ function pickOption(shownIdx) {
 function redoQuestion() {
   if (!session || session.mode === "exam") return;
   const { idx, items } = session;
-  // Re-prepare the same underlying question with a fresh option order.
-  items[idx] = prepareQuestion(items[idx].q);
+  // Re-prepare the same underlying question with a fresh option order
+  // (and a fresh hard-distractor draw if hard mode is on).
+  items[idx] = prepareQuestion(items[idx].q, session.hardMode);
   session.answers[idx] = null;
   session.revealed[idx] = false;
   session.redoCount[idx] = (session.redoCount[idx] || 0) + 1;
@@ -889,6 +962,10 @@ document.getElementById("q-back").onclick = () => {
 document.getElementById("q-prev").onclick = goPrev;
 document.getElementById("q-next").onclick = goNext;
 document.getElementById("q-redo").onclick = redoQuestion;
+document.getElementById("hard-mode-toggle").addEventListener("change", (e) => {
+  state.hardMode = e.target.checked;
+  saveState();
+});
 
 document.addEventListener("keydown", (e) => {
   // Only act when the question view is visible and a session is live.

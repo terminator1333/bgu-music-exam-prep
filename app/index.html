@@ -222,6 +222,62 @@
 
   .hidden { display: none !important; }
 
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .filter-label { font-size: 13px; color: var(--muted); }
+  .chip {
+    font: inherit;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .chip:hover:not(.selected) { background: #f0efeb; }
+  .chip.selected {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .chip .count {
+    opacity: 0.7;
+    margin-inline-start: 4px;
+    font-size: 11px;
+  }
+
+  .kbd-hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: end;
+  }
+  .kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: #fafaf8;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--ink);
+  }
+
+  .attempt-warn {
+    color: #a85a1a;
+    font-weight: 600;
+  }
+
   .error {
     background: var(--bad);
     border: 1px solid var(--bad-border);
@@ -254,6 +310,9 @@
           <span class="label">נקודות חולשה</span>
           <span class="hint">שאלות שטעית בהן בעבר</span>
         </button>
+      </div>
+      <div class="filter-row" id="lesson-filter">
+        <span class="filter-label">סינון לפי שיעור (תרגול ונקודות חולשה):</span>
       </div>
     </div>
 
@@ -289,10 +348,12 @@
       <div class="question" id="q-text"></div>
       <div class="options" id="q-options"></div>
       <div id="q-feedback" class="small" style="margin-top:14px;"></div>
+      <div class="kbd-hint" id="q-kbd-hint"></div>
       <div class="footer-row">
         <button class="ghost small" id="q-back">חזרה לתפריט</button>
         <div>
           <button class="ghost small hidden" id="q-prev">הקודמת</button>
+          <button class="ghost small hidden" id="q-redo">תרגול שוב</button>
           <button class="primary hidden" id="q-next">הבאה</button>
           <button class="primary hidden" id="q-submit">הגשת מבחן</button>
         </div>
@@ -339,6 +400,7 @@ const PASS_THRESHOLD = 0.75;
 
 let questions = [];
 let state = loadState();
+let selectedLesson = "all"; // "all" or a lesson number
 
 function loadState() {
   try {
@@ -382,7 +444,11 @@ function shuffle(arr) {
 }
 
 function pickExamQuestions(mode) {
-  const ready = questions.filter(q => q.correct !== null);
+  const allReady = questions.filter(q => q.correct !== null);
+  // Lesson filter applies to practice + weak only; exam stays comprehensive.
+  const ready = (mode !== "exam" && selectedLesson !== "all")
+    ? allReady.filter(q => q.lesson === selectedLesson)
+    : allReady;
   if (mode === "exam") {
     return shuffle(ready).slice(0, Math.min(EXAM_SIZE, ready.length));
   }
@@ -411,12 +477,37 @@ function pickExamQuestions(mode) {
   return [];
 }
 
+// Remap Hebrew letter references (e.g. "תשובות א׳ ו-ב׳ נכונות") to match a new
+// option order. Skips false positives like "ג׳וזפה" (Italian j-digraph) by
+// requiring that geresh-marked letters NOT be followed by another Hebrew letter,
+// and only rewriting bare letters when they follow a clear reference marker.
+function remapHebrewLetterRefs(text, letterMap) {
+  if (!text) return text;
+  // Letter + geresh as a standalone word: "א׳", "ב׳", but not "ג׳ו" (Giuseppe).
+  text = text.replace(
+    /([אבגד])(['׳])(?![א-ת])/g,
+    (_, l, g) => (letterMap[l] || l) + g
+  );
+  // Bare letter directly after a reference marker, not followed by more Hebrew.
+  text = text.replace(
+    /(תשוב(?:ה|ות)\s+|ו\s*-\s*|וגם\s+)([אבגד])(?![א-ת'׳])/g,
+    (_, prefix, l) => prefix + (letterMap[l] || l)
+  );
+  return text;
+}
+
 function prepareQuestion(q) {
   // Shuffle option order and remember where the correct answer lands.
   const indices = shuffle([0, 1, 2, 3]);
-  const shown = indices.map(i => q.options[i]);
+  // letterMap[originalLetter] = newLetter — used to rewrite cross-references.
+  const letterMap = {};
+  for (let orig = 0; orig < 4; orig++) {
+    letterMap[HEB_LETTERS[orig]] = HEB_LETTERS[indices.indexOf(orig)];
+  }
+  const shown = indices.map(i => remapHebrewLetterRefs(q.options[i], letterMap));
   const correctShown = indices.indexOf(q.correct);
-  return { q, shown, correctShown, indices };
+  const explanationShown = remapHebrewLetterRefs(q.explanation || "", letterMap);
+  return { q, shown, correctShown, indices, letterMap, explanationShown };
 }
 
 // --- Views ----------------------------------------------------------------
@@ -473,6 +564,38 @@ function renderHome() {
   const weakBtn = document.querySelector('button[data-mode="weak"]');
   const everWrong = perQ.some(p => p.seen > p.correct);
   weakBtn.disabled = !everWrong && answered === 0;
+
+  renderLessonFilter();
+}
+
+function renderLessonFilter() {
+  const container = document.getElementById("lesson-filter");
+  // Remove old chips (keep the label).
+  [...container.querySelectorAll(".chip")].forEach(c => c.remove());
+
+  const ready = questions.filter(q => q.correct !== null);
+  const counts = {};
+  for (const q of ready) counts[q.lesson] = (counts[q.lesson] || 0) + 1;
+  const lessons = Object.keys(counts).map(Number).sort((a, b) => a - b);
+
+  const makeChip = (key, label, count) => {
+    const b = document.createElement("button");
+    b.className = "chip" + (selectedLesson === key ? " selected" : "");
+    b.dataset.lesson = String(key);
+    b.innerHTML = count != null
+      ? `${escapeHtml(label)}<span class="count">(${count})</span>`
+      : escapeHtml(label);
+    b.onclick = () => {
+      selectedLesson = key;
+      renderLessonFilter();
+    };
+    return b;
+  };
+
+  container.appendChild(makeChip("all", "הכול", ready.length));
+  for (const l of lessons) {
+    container.appendChild(makeChip(l, `שיעור ${l}`, counts[l]));
+  }
 }
 
 // --- Session --------------------------------------------------------------
@@ -493,6 +616,10 @@ function startSession(mode) {
     answers: new Array(prepared.length).fill(null),
     // For practice: did we reveal feedback for this q yet?
     revealed: new Array(prepared.length).fill(false),
+    // First attempt per item — only the first answer counts toward stats.
+    firstAttempt: new Array(prepared.length).fill(true),
+    // How many times the user re-tried the same question in this session.
+    redoCount: new Array(prepared.length).fill(0),
   };
   renderQuestion();
   showView("question");
@@ -503,7 +630,15 @@ function renderQuestion() {
   const item = items[idx];
   const q = item.q;
 
-  document.getElementById("q-progress").textContent = `שאלה ${idx + 1} מתוך ${items.length}`;
+  const redos = session.redoCount[idx] || 0;
+  const progressBase = `שאלה ${idx + 1} מתוך ${items.length}`;
+  const progressEl = document.getElementById("q-progress");
+  if (redos > 0) {
+    const warn = redos >= 3 ? ' class="attempt-warn"' : "";
+    progressEl.innerHTML = `${escapeHtml(progressBase)} · <span${warn}>ניסיון ${redos + 1}</span>`;
+  } else {
+    progressEl.textContent = progressBase;
+  }
   document.getElementById("q-lesson").textContent = LESSON_LABEL[q.lesson] || "";
   const src = document.getElementById("q-source");
   src.textContent = q.source === "slides" ? "מצגת" : "שאלון";
@@ -538,13 +673,16 @@ function renderQuestion() {
   const prev = document.getElementById("q-prev");
   const next = document.getElementById("q-next");
   const submit = document.getElementById("q-submit");
+  const redo = document.getElementById("q-redo");
   if (mode === "exam") {
     prev.classList.toggle("hidden", idx === 0);
     next.classList.toggle("hidden", idx === items.length - 1);
     submit.classList.toggle("hidden", idx !== items.length - 1);
+    redo.classList.add("hidden");
   } else {
     prev.classList.add("hidden");
     next.classList.toggle("hidden", !revealed[idx]);
+    redo.classList.toggle("hidden", !revealed[idx]);
     if (revealed[idx] && idx === items.length - 1) {
       next.textContent = "סיום";
     } else {
@@ -552,6 +690,20 @@ function renderQuestion() {
     }
     submit.classList.add("hidden");
   }
+
+  renderKbdHint();
+}
+
+function renderKbdHint() {
+  const hint = document.getElementById("q-kbd-hint");
+  const parts = [`<span class="kbd">1</span>–<span class="kbd">4</span> בחירה`];
+  const next = document.getElementById("q-next");
+  const submit = document.getElementById("q-submit");
+  const redo = document.getElementById("q-redo");
+  if (!next.classList.contains("hidden")) parts.push(`<span class="kbd">Enter</span> הבאה`);
+  if (!submit.classList.contains("hidden")) parts.push(`<span class="kbd">Enter</span> הגשה`);
+  if (!redo.classList.contains("hidden")) parts.push(`<span class="kbd">R</span> תרגול שוב`);
+  hint.innerHTML = parts.join(" · ");
 }
 
 function escapeHtml(s) {
@@ -584,10 +736,25 @@ function pickOption(shownIdx) {
   // Practice & weak: reveal feedback
   revealed[idx] = true;
   const correct = shownIdx === item.correctShown;
-  recordAnswer(item.q.id, correct);
+  if (session.firstAttempt[idx]) {
+    recordAnswer(item.q.id, correct);
+    session.firstAttempt[idx] = false;
+  }
   revealPractice(item, shownIdx);
   renderPracticeFeedback(item, shownIdx);
   document.getElementById("q-next").classList.remove("hidden");
+  document.getElementById("q-redo").classList.remove("hidden");
+}
+
+function redoQuestion() {
+  if (!session || session.mode === "exam") return;
+  const { idx, items } = session;
+  // Re-prepare the same underlying question with a fresh option order.
+  items[idx] = prepareQuestion(items[idx].q);
+  session.answers[idx] = null;
+  session.revealed[idx] = false;
+  session.redoCount[idx] = (session.redoCount[idx] || 0) + 1;
+  renderQuestion();
 }
 
 function revealPractice(item, chosen) {
@@ -610,8 +777,8 @@ function renderPracticeFeedback(item, chosen) {
     const correctText = item.shown[item.correctShown];
     html = `<span style="color:var(--bad-ink);">לא נכון.</span> התשובה הנכונה: <strong>${escapeHtml(correctText)}</strong>`;
   }
-  if (item.q.explanation) {
-    html += `<div class="explanation">${escapeHtml(item.q.explanation)}</div>`;
+  if (item.explanationShown) {
+    html += `<div class="explanation">${escapeHtml(item.explanationShown)}</div>`;
   }
   fb.innerHTML = html;
 }
@@ -660,7 +827,7 @@ function submitExam() {
         right: item.shown[item.correctShown],
         source: item.q.source,
         lesson: item.q.lesson,
-        explanation: item.q.explanation || "",
+        explanation: item.explanationShown || "",
       });
     }
   }
@@ -721,6 +888,41 @@ document.getElementById("q-back").onclick = () => {
 };
 document.getElementById("q-prev").onclick = goPrev;
 document.getElementById("q-next").onclick = goNext;
+document.getElementById("q-redo").onclick = redoQuestion;
+
+document.addEventListener("keydown", (e) => {
+  // Only act when the question view is visible and a session is live.
+  if (!session) return;
+  if (document.getElementById("view-question").classList.contains("hidden")) return;
+  // Don't hijack typing in inputs (none today, but future-proof).
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  const key = e.key;
+  const optsCount = document.querySelectorAll("#q-options .option").length;
+
+  if (key >= "1" && key <= "9") {
+    const i = parseInt(key, 10) - 1;
+    if (i < optsCount) {
+      pickOption(i);
+      e.preventDefault();
+    }
+    return;
+  }
+  if (key === "Enter") {
+    const next = document.getElementById("q-next");
+    const submit = document.getElementById("q-submit");
+    if (!submit.classList.contains("hidden")) { submitExam(); e.preventDefault(); }
+    else if (!next.classList.contains("hidden")) { goNext(); e.preventDefault(); }
+    return;
+  }
+  if (key === "r" || key === "R") {
+    const redo = document.getElementById("q-redo");
+    if (!redo.classList.contains("hidden")) { redoQuestion(); e.preventDefault(); }
+    return;
+  }
+});
 document.getElementById("q-submit").onclick = submitExam;
 document.getElementById("r-new").onclick = () => startSession("exam");
 document.getElementById("r-home").onclick = () => {

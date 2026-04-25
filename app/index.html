@@ -21,7 +21,53 @@
     --bad-border: #c77268;
     --tag-bank: #e6e8eb;
     --tag-slides: #fae7c2;
+    --tag-slides-ink: #7a5a1b;
+    --hover: #f0efeb;
+    --selected: #edf2fb;
+    --letter-bg: #eceae5;
+    --explanation-bg: #eef1f5;
+    --kbd-bg: #fafaf8;
+    --banner-bg: #fff3d8;
+    --banner-border: #e6c97a;
+    --banner-ink: #6b4d11;
+    --warn: #a85a1a;
+    --hard-bg: #fbe7d4;
+    --hard-border: #e0a978;
+    --hard-ink: #8a3a0e;
+    --table-stripe: #f7f6f3;
   }
+  [data-theme="dark"] {
+    --bg: #15171b;
+    --panel: #20232a;
+    --ink: #e6e8eb;
+    --muted: #9aa0a6;
+    --line: #353941;
+    --accent: #6c9ce6;
+    --accent-ink: #0d1015;
+    --good: #1f3a25;
+    --good-ink: #b6e3bb;
+    --good-border: #3d6b42;
+    --bad: #3d1d1a;
+    --bad-ink: #f0bcb6;
+    --bad-border: #6b3d36;
+    --tag-bank: #2c2f36;
+    --tag-slides: #3d3320;
+    --tag-slides-ink: #d9b878;
+    --hover: #2a2d35;
+    --selected: #1f3358;
+    --letter-bg: #353941;
+    --explanation-bg: #262932;
+    --kbd-bg: #2a2d35;
+    --banner-bg: #3d3320;
+    --banner-border: #7a5e26;
+    --banner-ink: #d9b878;
+    --warn: #e0a978;
+    --hard-bg: #3d2618;
+    --hard-border: #7a4f2d;
+    --hard-ink: #e6b48a;
+    --table-stripe: #1c1f25;
+  }
+  html { color-scheme: light dark; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
   body {
@@ -69,7 +115,7 @@
     text-align: right;
     transition: background 0.15s, border-color 0.15s;
   }
-  button:hover:not(:disabled) { background: #f0efeb; }
+  button:hover:not(:disabled) { background: var(--hover); }
   button:disabled { opacity: 0.55; cursor: not-allowed; }
   button.primary {
     background: var(--accent);
@@ -122,7 +168,7 @@
     color: var(--muted);
     margin-inline-start: 6px;
   }
-  .tag.slides { background: var(--tag-slides); color: #7a5a1b; }
+  .tag.slides { background: var(--tag-slides); color: var(--tag-slides-ink); }
 
   .question {
     font-size: 19px;
@@ -143,8 +189,8 @@
     cursor: pointer;
     transition: background 0.1s, border-color 0.1s;
   }
-  .option:hover:not(.disabled) { background: #f0efeb; }
-  .option.selected { border-color: var(--accent); background: #edf2fb; }
+  .option:hover:not(.disabled) { background: var(--hover); }
+  .option.selected { border-color: var(--accent); background: var(--selected); }
   .option.correct { border-color: var(--good-border); background: var(--good); color: var(--good-ink); }
   .option.wrong { border-color: var(--bad-border); background: var(--bad); color: var(--bad-ink); }
   .option.disabled { cursor: default; }
@@ -153,7 +199,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: #eceae5;
+    background: var(--letter-bg);
     color: var(--muted);
     display: grid;
     place-items: center;
@@ -201,7 +247,7 @@
     margin-top: 8px;
     padding: 8px 10px;
     border-radius: 8px;
-    background: #eef1f5;
+    background: var(--explanation-bg);
     color: var(--muted);
     font-size: 14px;
     line-height: 1.55;
@@ -211,9 +257,9 @@
   .link:hover { filter: brightness(0.85); }
 
   .banner {
-    background: #fff3d8;
-    border: 1px solid #e6c97a;
-    color: #6b4d11;
+    background: var(--banner-bg);
+    border: 1px solid var(--banner-border);
+    color: var(--banner-ink);
     padding: 10px 14px;
     border-radius: 10px;
     font-size: 14px;
@@ -243,7 +289,7 @@
     font-size: 13px;
     line-height: 1.3;
   }
-  .chip:hover:not(.selected) { background: #f0efeb; }
+  .chip:hover:not(.selected) { background: var(--hover); }
   .chip.selected {
     background: var(--accent);
     color: var(--accent-ink);
@@ -267,14 +313,14 @@
     border: 1px solid var(--line);
     border-bottom-width: 2px;
     border-radius: 4px;
-    background: #fafaf8;
+    background: var(--kbd-bg);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px;
     color: var(--ink);
   }
 
   .attempt-warn {
-    color: #a85a1a;
+    color: var(--warn);
     font-weight: 600;
   }
 
@@ -295,9 +341,9 @@
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 12px;
-    background: #fbe7d4;
-    color: #8a3a0e;
-    border: 1px solid #e0a978;
+    background: var(--hard-bg);
+    color: var(--hard-ink);
+    border: 1px solid var(--hard-border);
     margin-inline-start: 6px;
   }
 
@@ -308,12 +354,121 @@
     padding: 14px 16px;
     border-radius: 10px;
   }
+
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .theme-toggle {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .theme-toggle:hover { background: var(--hover); }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (min-width: 560px) {
+    .summary-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .summary-grid button {
+    text-align: start;
+    padding: 12px 14px;
+    line-height: 1.35;
+  }
+  .summary-grid .num {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--accent-ink);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-inline-end: 6px;
+  }
+  .summary-grid .ttl { font-size: 14px; font-weight: 500; }
+
+  .summary-body { line-height: 1.7; }
+  .summary-body h2 {
+    font-size: 22px;
+    margin: 24px 0 8px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+  }
+  .summary-body h2:first-child { margin-top: 0; }
+  .summary-body h3 {
+    font-size: 17px;
+    margin: 20px 0 6px;
+    color: var(--ink);
+  }
+  .summary-body h4 { font-size: 15px; margin: 16px 0 4px; }
+  .summary-body p { margin: 8px 0; }
+  .summary-body ul, .summary-body ol { padding-inline-start: 24px; margin: 8px 0; }
+  .summary-body li { margin: 4px 0; }
+  .summary-body strong { color: var(--ink); }
+  .summary-body blockquote {
+    margin: 10px 0;
+    padding: 8px 14px;
+    border-inline-start: 3px solid var(--accent);
+    background: var(--explanation-bg);
+    color: var(--muted);
+    border-radius: 4px;
+  }
+  .summary-body code {
+    background: var(--kbd-bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 90%;
+  }
+  .summary-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .summary-body th, .summary-body td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: start;
+    vertical-align: top;
+  }
+  .summary-body th {
+    background: var(--explanation-bg);
+    font-weight: 600;
+  }
+  .summary-body tbody tr:nth-child(even) td { background: var(--table-stripe); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>חוויה מוזיקלית — מבחן תרגול</h1>
-  <p class="subtitle">הכנה למבחן המסכם לקורס "שומעים שזה קלאסי".</p>
+  <div class="page-head">
+    <div>
+      <h1>חוויה מוזיקלית — מבחן תרגול</h1>
+      <p class="subtitle">הכנה למבחן המסכם לקורס "שומעים שזה קלאסי".</p>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" title="החלפת ערכת צבעים" aria-label="החלפת ערכת צבעים">🌙</button>
+  </div>
 
   <!-- LANDING -->
   <div id="view-home" class="view">
@@ -356,6 +511,11 @@
       <div class="toolbar">
         <button class="ghost small" id="reset-btn">איפוס התקדמות</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="small muted" style="margin-bottom:8px;">חומר לימוד — סיכום ומילון מונחים לכל שיעור</div>
+      <div class="summary-grid" id="summary-buttons"></div>
     </div>
 
     <div class="card small muted">
@@ -405,6 +565,17 @@
     <div id="r-review"></div>
   </div>
 
+  <!-- SUMMARY -->
+  <div id="view-summary" class="view hidden">
+    <div class="card">
+      <div class="footer-row" style="margin-top:0; margin-bottom:14px;">
+        <button class="ghost small" id="s-back">← חזרה לתפריט</button>
+        <h2 id="s-title" style="margin:0; font-size:20px;"></h2>
+      </div>
+      <div class="summary-body" id="s-body"></div>
+    </div>
+  </div>
+
   <div id="view-error" class="view hidden">
     <div class="card error" id="error-text"></div>
   </div>
@@ -412,6 +583,37 @@
 
 <script>
 "use strict";
+
+// --- Theme ----------------------------------------------------------------
+
+const THEME_KEY = "musicExam.theme";
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  const btn = document.getElementById("theme-toggle");
+  if (btn) btn.textContent = theme === "dark" ? "☀️" : "🌙";
+}
+
+function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch {}
+  if (saved === "dark" || saved === "light") {
+    applyTheme(saved);
+    return;
+  }
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(prefersDark ? "dark" : "light");
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch {}
+}
+
+// Apply theme as early as possible to avoid a flash.
+initTheme();
 
 // --- Data + storage -------------------------------------------------------
 
@@ -429,6 +631,7 @@ const EXAM_SIZE = 20;
 const PASS_THRESHOLD = 0.75;
 
 let questions = [];
+let summaries = {}; // { "1": { title, markdown }, ... }
 let state = loadState();
 let selectedLesson = "all"; // "all" or a lesson number
 
@@ -635,6 +838,7 @@ function renderHome() {
   document.getElementById("hard-mode-toggle").checked = !!state.hardMode;
 
   renderLessonFilter();
+  renderSummaryButtons();
 }
 
 function renderLessonFilter() {
@@ -947,6 +1151,119 @@ function renderResults(score, total, review) {
   rv.innerHTML = parts.join("");
 }
 
+// --- Summaries (lesson study material) -----------------------------------
+
+// Tiny markdown renderer for the subset used in lesson summaries:
+// ATX headings, paragraphs, blockquotes, unordered/ordered lists,
+// pipe-tables, **bold**, *italic*, `inline code`.
+function mdToHtml(md) {
+  if (!md) return "";
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+  const inline = (s) => {
+    s = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+    return s;
+  };
+  const parseRow = (line) => {
+    let t = line.trim();
+    if (t.startsWith("|")) t = t.slice(1);
+    if (t.endsWith("|")) t = t.slice(0, -1);
+    return t.split("|").map(c => c.trim());
+  };
+  while (i < lines.length) {
+    const line = lines[i];
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      const level = Math.min(h[1].length, 6);
+      out.push(`<h${level}>${inline(h[2])}</h${level}>`);
+      i++; continue;
+    }
+    if (line.trim().startsWith("|") && lines[i+1] && /^\s*\|?\s*[-: ]+(\|[-: ]+)+\|?\s*$/.test(lines[i+1])) {
+      const header = parseRow(line);
+      let j = i + 2;
+      const rows = [];
+      while (j < lines.length && lines[j].trim().startsWith("|")) {
+        rows.push(parseRow(lines[j])); j++;
+      }
+      const th = header.map(c => `<th>${inline(c)}</th>`).join("");
+      const trs = rows.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("");
+      out.push(`<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`);
+      i = j; continue;
+    }
+    if (line.startsWith("> ")) {
+      const buf = [];
+      while (i < lines.length && lines[i].startsWith("> ")) {
+        buf.push(lines[i].slice(2)); i++;
+      }
+      out.push(`<blockquote>${inline(buf.join(" "))}</blockquote>`);
+      continue;
+    }
+    if (/^\s*-\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*-\s+/.test(lines[i])) {
+        items.push(`<li>${inline(lines[i].replace(/^\s*-\s+/, ""))}</li>`); i++;
+      }
+      out.push(`<ul>${items.join("")}</ul>`);
+      continue;
+    }
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        items.push(`<li>${inline(lines[i].replace(/^\s*\d+\.\s+/, ""))}</li>`); i++;
+      }
+      out.push(`<ol>${items.join("")}</ol>`);
+      continue;
+    }
+    if (!line.trim()) { i++; continue; }
+    const buf = [line];
+    i++;
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !/^#{1,6}\s/.test(lines[i]) &&
+      !lines[i].startsWith("> ") &&
+      !/^\s*-\s+/.test(lines[i]) &&
+      !/^\s*\d+\.\s+/.test(lines[i]) &&
+      !lines[i].trim().startsWith("|")
+    ) {
+      buf.push(lines[i]); i++;
+    }
+    out.push(`<p>${inline(buf.join(" "))}</p>`);
+  }
+  return out.join("");
+}
+
+function renderSummaryButtons() {
+  const grid = document.getElementById("summary-buttons");
+  grid.innerHTML = "";
+  const lessons = Object.keys(summaries).map(Number).sort((a, b) => a - b);
+  let added = 0;
+  for (const l of lessons) {
+    const s = summaries[String(l)];
+    if (!s || !s.markdown) continue;
+    const b = document.createElement("button");
+    b.innerHTML = `<span class="num">${l}</span><span class="ttl">${escapeHtml(s.title || ("שיעור " + l))}</span>`;
+    b.onclick = () => showLessonSummary(l);
+    grid.appendChild(b);
+    added++;
+  }
+  // Hide the whole study-material card if no summaries are available.
+  const card = grid.parentElement;
+  if (card) card.classList.toggle("hidden", added === 0);
+}
+
+function showLessonSummary(lesson) {
+  const s = summaries[String(lesson)];
+  if (!s) return;
+  document.getElementById("s-title").textContent = `שיעור ${lesson} — ${s.title || ""}`;
+  document.getElementById("s-body").innerHTML = mdToHtml(s.markdown);
+  showView("summary");
+}
+
 // --- Wiring ---------------------------------------------------------------
 
 document.querySelectorAll("[data-mode]").forEach(b => {
@@ -966,6 +1283,12 @@ document.getElementById("hard-mode-toggle").addEventListener("change", (e) => {
   state.hardMode = e.target.checked;
   saveState();
 });
+document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+applyTheme(document.documentElement.getAttribute("data-theme") || "light"); // sync button icon
+document.getElementById("s-back").onclick = () => {
+  showView("home");
+  renderHome();
+};
 
 document.addEventListener("keydown", (e) => {
   // Only act when the question view is visible and a session is live.
@@ -1018,11 +1341,17 @@ document.getElementById("reset-btn").onclick = () => {
 
 (async function boot() {
   try {
-    const resp = await fetch("questions.json", { cache: "no-store" });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    questions = await resp.json();
+    const [qResp, sResp] = await Promise.all([
+      fetch("questions.json", { cache: "no-store" }),
+      fetch("summaries.json", { cache: "no-store" }).catch(() => null),
+    ]);
+    if (!qResp.ok) throw new Error(`HTTP ${qResp.status}`);
+    questions = await qResp.json();
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error("קובץ השאלות ריק.");
+    }
+    if (sResp && sResp.ok) {
+      try { summaries = await sResp.json(); } catch { summaries = {}; }
     }
     renderHome();
     showView("home");

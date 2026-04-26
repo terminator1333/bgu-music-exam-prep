@@ -498,6 +498,12 @@
           <span><strong>מצב קשה</strong> · מחליף חלק מההסחות בגרסאות מטעות יותר (מתאים לסימולציית מבחן אמיתי)</span>
         </label>
       </div>
+      <div class="filter-row">
+        <label class="hard-toggle">
+          <input type="checkbox" id="hard-only-toggle">
+          <span><strong>רק שאלות קשות</strong> · מסנן לתרגול ולנקודות חולשה את <span id="hard-only-count">~20</span> השאלות שנכתבו להן הסחות מטעות</span>
+        </label>
+      </div>
     </div>
 
     <div class="card">
@@ -643,6 +649,7 @@ function loadState() {
     if (!s.perQuestion) s.perQuestion = {};
     if (!Array.isArray(s.exams)) s.exams = [];
     if (typeof s.hardMode !== "boolean") s.hardMode = false;
+    if (typeof s.hardOnly !== "boolean") s.hardOnly = false;
     return s;
   } catch {
     return defaultState();
@@ -650,7 +657,7 @@ function loadState() {
 }
 
 function defaultState() {
-  return { perQuestion: {}, exams: [], hardMode: false };
+  return { perQuestion: {}, exams: [], hardMode: false, hardOnly: false };
 }
 
 function saveState() {
@@ -679,10 +686,17 @@ function shuffle(arr) {
 
 function pickExamQuestions(mode) {
   const allReady = questions.filter(q => q.correct !== null);
-  // Lesson filter applies to practice + weak only; exam stays comprehensive.
-  const ready = (mode !== "exam" && selectedLesson !== "all")
-    ? allReady.filter(q => q.lesson === selectedLesson)
-    : allReady;
+  // Lesson filter and "hard-only" filter apply to practice + weak only;
+  // exam stays a representative sample of the full bank.
+  let ready = allReady;
+  if (mode !== "exam") {
+    if (selectedLesson !== "all") {
+      ready = ready.filter(q => q.lesson === selectedLesson);
+    }
+    if (state.hardOnly) {
+      ready = ready.filter(q => Array.isArray(q.hard_distractors) && q.hard_distractors.length > 0);
+    }
+  }
   if (mode === "exam") {
     return shuffle(ready).slice(0, Math.min(EXAM_SIZE, ready.length));
   }
@@ -834,8 +848,13 @@ function renderHome() {
   const everWrong = perQ.some(p => p.seen > p.correct);
   weakBtn.disabled = !everWrong && answered === 0;
 
-  // Sync hard-mode checkbox to persisted state.
+  // Sync hard-mode + hard-only checkboxes to persisted state.
   document.getElementById("hard-mode-toggle").checked = !!state.hardMode;
+  document.getElementById("hard-only-toggle").checked = !!state.hardOnly;
+  const hardOnlyCount = questions.filter(q =>
+    q.correct !== null && Array.isArray(q.hard_distractors) && q.hard_distractors.length > 0
+  ).length;
+  document.getElementById("hard-only-count").textContent = String(hardOnlyCount);
 
   renderLessonFilter();
   renderSummaryButtons();
@@ -1281,6 +1300,10 @@ document.getElementById("q-next").onclick = goNext;
 document.getElementById("q-redo").onclick = redoQuestion;
 document.getElementById("hard-mode-toggle").addEventListener("change", (e) => {
   state.hardMode = e.target.checked;
+  saveState();
+});
+document.getElementById("hard-only-toggle").addEventListener("change", (e) => {
+  state.hardOnly = e.target.checked;
   saveState();
 });
 document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
